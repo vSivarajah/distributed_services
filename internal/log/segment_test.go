@@ -8,6 +8,7 @@ import (
 	"os"
 	"testing"
 )
+
 //test that we can append a record to a segment, read back the same record
 //eventually hit the configured max size for both the store and index.
 //calling newSegment twice with the same base offsett and dir also checks that the function loads a segment's state from the persisted index and logfiles.

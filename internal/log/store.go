@@ -17,13 +17,13 @@ const (
 
 type store struct {
 	*os.File
-	mu sync.Mutex
-	buf *bufio.Writer
+	mu   sync.Mutex
+	buf  *bufio.Writer
 	size uint64
 }
 
 //newStore creates a store for the given file.
-func newStore(f *os.File) (*store, error)  {
+func newStore(f *os.File) (*store, error) {
 	//fetch file info and store file name in fi
 	fi, err := os.Stat(f.Name())
 	if err != nil {
@@ -62,9 +62,8 @@ func (s *store) Append(p []byte) (n uint64, pos uint64, err error) {
 	return uint64(w), pos, nil
 }
 
-
 //Read returns the record stored at the given position.
-func (s *store) Read(pos uint64) ([]byte, error)  {
+func (s *store) Read(pos uint64) ([]byte, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -105,4 +104,3 @@ func (s *store) Close() error {
 	}
 	return s.File.Close()
 }
-

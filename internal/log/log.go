@@ -15,17 +15,17 @@ import (
 //The log consists of a list of segments and a pointer to the active segment to append writes to.
 //The directory is where we store the segments
 type Log struct {
-	mu sync.RWMutex
-	Dir string
+	mu     sync.RWMutex
+	Dir    string
 	Config Config
 
 	activeSegment *segment
-	segments []*segment
+	segments      []*segment
 }
 
 //NewLog sets up defaults for the config file that the caller didn't specify
 //Create a log instance and set up that instance
-func NewLog(dir string, c Config) (*Log, error)  {
+func NewLog(dir string, c Config) (*Log, error) {
 	if c.Segment.MaxStoreBytes == 0 {
 		c.Segment.MaxStoreBytes = 1024
 	}
@@ -33,12 +33,11 @@ func NewLog(dir string, c Config) (*Log, error)  {
 		c.Segment.MaxIndexBytes = 1024
 	}
 	l := &Log{
-		Dir: dir,
+		Dir:    dir,
 		Config: c,
 	}
 	return l, l.setup()
 }
-
 
 //When a log starts, it's responsible for setting itself up for the segments that already exist on disk
 //or if the log is new and has no existing segments, for bootstrapping the initial segment.
@@ -55,11 +54,11 @@ func (l *Log) setup() error {
 		offStr := strings.TrimSuffix(
 			file.Name(),
 			path.Ext(file.Name()),
-			)
+		)
 		off, _ := strconv.ParseUint(offStr, 10, 0)
 		baseOffsets = append(baseOffsets, off)
 	}
-	sort.Slice(baseOffsets, func(i,j int) bool {
+	sort.Slice(baseOffsets, func(i, j int) bool {
 		return baseOffsets[i] < baseOffsets[j]
 	})
 	for i := 0; i < len(baseOffsets); i++ {
@@ -72,7 +71,7 @@ func (l *Log) setup() error {
 	if l.segments == nil {
 		if err = l.newSegment(
 			l.Config.Segment.InitialOffset,
-			); err != nil {
+		); err != nil {
 			return err
 		}
 	}
@@ -91,8 +90,8 @@ func (l *Log) Append(record *api.Record) (uint64, error) {
 	if err != nil {
 		return 0, err
 	}
-	if l.activeSegment.IsMaxed(){
-		err = l.newSegment(off +1)
+	if l.activeSegment.IsMaxed() {
+		err = l.newSegment(off + 1)
 	}
 	return off, err
 }
@@ -158,14 +157,14 @@ func (l *Log) LowestOffset() (uint64, error) {
 
 //these methods tell us the offset range stored in the log.
 //Used when finding the nodes with the oldest and newest data and which nodes are falling behind.
-func (l *Log) HighestOffset() (uint64, error){
+func (l *Log) HighestOffset() (uint64, error) {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
 	off := l.segments[len(l.segments)-1].nextOffset
 	if off == 0 {
 		return 0, nil
 	}
-	return off -1, nil
+	return off - 1, nil
 }
 
 //Truncate removes all segments whose highest offset is lower than lowest.

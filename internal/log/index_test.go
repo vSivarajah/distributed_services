@@ -17,18 +17,17 @@ func TestIndex(t *testing.T) {
 	c.Segment.MaxIndexBytes = 1024
 	idx, err := newIndex(f, c)
 	require.NoError(t, err)
-	_,_, err = idx.Read(-1)
+	_, _, err = idx.Read(-1)
 	require.Error(t, err)
 	require.Equal(t, f.Name(), idx.Name())
 
-	entries := []struct{
+	entries := []struct {
 		Off uint32
 		Pos uint64
 	}{
 		{Off: 0, Pos: 0},
 		{Off: 1, Pos: 10},
 	}
-
 
 	//Iterate over each entry and write it to the index.
 	//check that we can read the same entry back through Read()

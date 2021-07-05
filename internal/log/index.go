@@ -77,7 +77,6 @@ func (i *index) Read(in int64) (out uint32, pos uint64, err error) {
 	return out, pos, nil
 }
 
-
 //Write appends the given offset and position to the index
 func (i *index) Write(off uint32, pos uint64) error {
 	if uint64(len(i.mmap)) < i.size+entWidth {
@@ -88,7 +87,6 @@ func (i *index) Write(off uint32, pos uint64) error {
 	i.size += uint64(entWidth)
 	return nil
 }
-
 
 func (i *index) Name() string {
 	return i.file.Name()

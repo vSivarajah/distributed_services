@@ -17,8 +17,8 @@ type Config struct {
 
 var _ api.LogServer = (*grpcServer)(nil)
 
-func NewGRPCServer (config *Config) (*grpc.Server, error) {
-	gsrv := grpc.NewServer()
+func NewGRPCServer(config *Config, opts ...grpc.ServerOption) (*grpc.Server, error) {
+	gsrv := grpc.NewServer(opts...)
 	srv, err := newgrpcServer(config)
 	if err != nil {
 		return nil, err
@@ -39,7 +39,7 @@ func newgrpcServer(config *Config) (srv *grpcServer, err error) {
 	return srv, nil
 }
 
-func (s *grpcServer) Produce(ctx context.Context, req *api.ProduceRequest) (*api.ProduceResponse, error){
+func (s *grpcServer) Produce(ctx context.Context, req *api.ProduceRequest) (*api.ProduceResponse, error) {
 	offset, err := s.CommitLog.Append(req.Record)
 	if err != nil {
 		return nil, err
@@ -57,8 +57,8 @@ func (s *grpcServer) Consume(ctx context.Context, req *api.ConsumeRequest) (*api
 
 //ProduceStream implements a bidirectional streaming RPC so the client can stream data into the server's log
 //and the server can tell the client whether each request succeeded.
-func(s *grpcServer) ProduceStream(stream api.Log_ProduceStreamServer,
-	) error {
+func (s *grpcServer) ProduceStream(stream api.Log_ProduceStreamServer,
+) error {
 	for {
 		req, err := stream.Recv()
 		if err != nil {
@@ -79,11 +79,11 @@ func(s *grpcServer) ProduceStream(stream api.Log_ProduceStreamServer,
 //when the server reaches the end of the log, the server will wait until someone appends a record to the log and then continue
 //streaming records to the client
 func (s *grpcServer) ConsumeStream(req *api.ConsumeRequest, stream api.Log_ConsumeStreamServer,
-	) error {
+) error {
 	for {
 		select {
-		case <- stream.Context().Done():
-				return nil
+		case <-stream.Context().Done():
+			return nil
 		default:
 			res, err := s.Consume(stream.Context(), req)
 			switch err.(type) {

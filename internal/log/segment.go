@@ -20,14 +20,14 @@ type segment struct {
 func newSegment(dir string, baseOffset uint64, c Config) (*segment, error) {
 	s := &segment{
 		baseOffset: baseOffset,
-		config: c,
+		config:     c,
 	}
 	var err error
 	storeFile, err := os.OpenFile(
 		path.Join(dir, fmt.Sprintf("%d%s", baseOffset, ".store")),
 		os.O_RDWR|os.O_CREATE|os.O_APPEND,
 		0644,
-		)
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -38,25 +38,24 @@ func newSegment(dir string, baseOffset uint64, c Config) (*segment, error) {
 		path.Join(dir, fmt.Sprintf("%d%s", baseOffset, ".index")),
 		os.O_RDWR|os.O_CREATE,
 		0644,
-		)
+	)
 
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	if s.index, err = newIndex(indexFile, c); err != nil {
 		return nil, err
 	}
-	if off, _,err := s.index.Read(-1); err != nil {
+	if off, _, err := s.index.Read(-1); err != nil {
 		//if index is empty, then the next reccord appended to the segment would be the first record and its offset would be the segment's baseoffset.
 		s.nextOffset = baseOffset
-	}else {
+	} else {
 		//if the index has at least one entry, then the offset of the next record written take the offset at the end of the segment by adding 1
 		//to the baseoffset and relative offset.
 		s.nextOffset = baseOffset + uint64(off) + 1
 	}
 	return s, nil
 }
-
 
 //Append writes the record to the segment and returns the newly appended record's offset.
 //The log returns the offset to the API response.
@@ -75,7 +74,7 @@ func (s *segment) Append(record *api.Record) (offset uint64, err error) {
 		//index offsets are relative to base offset
 		uint32(s.nextOffset-uint64(s.baseOffset)),
 		pos,
-		); err != nil {
+	); err != nil {
 		return 0, err
 	}
 	s.nextOffset++
@@ -87,7 +86,7 @@ func (s *segment) Append(record *api.Record) (offset uint64, err error) {
 //and get the associated index entry.
 //once it has the index entry, the segment can go straight to the record's position in the store and read the proper amount of data.
 func (s *segment) Read(off uint64) (*api.Record, error) {
-	_, pos, err := s.index.Read(int64(off-s.baseOffset))
+	_, pos, err := s.index.Read(int64(off - s.baseOffset))
 	if err != nil {
 		return nil, err
 	}
@@ -138,5 +137,5 @@ func nearestMultiple(j, k uint64) uint64 {
 	if j >= 0 {
 		return (j / k) * k
 	}
-	return ((j -k + 1)/ k) * k
+	return ((j - k + 1) / k) * k
 }
